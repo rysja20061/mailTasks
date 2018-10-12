@@ -1,0 +1,101 @@
+<script>
+// Реализовать класс Futures
+function Futures(executor) {
+  this.status = 'PENDING'
+  const callbacks = {}
+  this.value = []
+  this.reason = []
+  this.callbacks = callbacks
+  this.executor = executor(this.resolve.bind(this), this.reject.bind(this))
+  this.async = false
+}
+
+Futures.prototype.resolve = function(val) {
+	if (this.status == 'PENDING' && this.status !== 'REJECTED') {
+		this.status = 'RESOLVED'
+	     this.value.push(val)
+	     if (this.async) {
+	     	this.callbacks.fullfiled(val)
+	     }
+	}
+
+    
+  } 
+Futures.prototype.reject = function(reas) {
+	if (this.status == 'PENDING' && this.status !== 'RESOLVED') {
+		this.status = 'REJECTED'
+		this.reason.push(reas)
+		if (this.async) {
+			this.callbacks.rejected(reas)
+		}
+	}
+	
+  }
+
+Futures.prototype.then = function (onfullfiled, onrejected) {
+    if (this.status === 'RESOLVED') {
+    	onfullfiled(...this.value)
+    	
+    } else if (this.status === 'REJECTED'){
+    	onrejected(...this.value)
+    	
+    } else {
+    	this.callbacks.rejected = onrejected
+    	this.callbacks.fullfiled = onfullfiled
+    	this.async = true
+    }
+    
+};
+
+</script>
+
+<script>
+// Параллельные вычисления
+
+function parallel (promises, callback) {
+  let results = {};
+  let resultsNumber = 0;
+  const resultFunction = (result, index) =>{
+          results[index] = result;
+          resultsNumber += 1
+         if (resultsNumber === promises.length) {
+            callback(Object.values(results))
+         }
+
+  }
+  promises.forEach((promise, index) => {
+    const rawResult = promise((promiseResult) => {
+      resultFunction(promiseResult, index);
+    })
+    if (rawResult) {
+      resultFunction(rawResult, index)
+    }
+  })
+};
+</script>
+
+
+<script>
+/**
+ * Вывод чисел в колонках
+ * @param   {Number}  max    от 0 до max
+ * @param   {Number}  cols   количество колонок
+ * @returns {String}
+ */
+let printNumbers = function (max, cols) {
+  let colsCount = Math.ceil(max/cols)
+  let obj = {}
+  let flag = 0
+  for (let i = 0; i <= colsCount; i++) {
+   obj[i] = []
+  }
+  for (let i = 0; i < max; i++) {
+   if (flag === colsCount) {
+    flag = 0
+   } 
+   obj[flag].push(i)
+   flag = flag + 1
+  }
+  return Object.values(obj).join('\n').replace(/,/g, ' ').trim()
+};
+</script>
